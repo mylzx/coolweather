@@ -15,7 +15,10 @@ import android.R;
 import android.app.Activity;
 import android.app.DownloadManager.Query;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
@@ -54,6 +57,15 @@ public class ChooseAreaActivity extends Activity{
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
+		
+		SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(this);
+		if(prefs.getBoolean("city_selected", false)){
+			Intent intent=new Intent(this,WeatherActivity.class);
+			startActivity(intent);
+			finish();
+			return;
+		}
+		
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(com.coolweather.app.R.layout.choose_area);
 		listView=(ListView)findViewById(com.coolweather.app.R.id.list_view);
@@ -73,12 +85,18 @@ public class ChooseAreaActivity extends Activity{
 				}else if(currentLevel==LEVEL_CITY){
 					selectedCity=cityList.get(index);
 					queryCounties();
+				}else if(currentLevel==LEVEL_COUNTY){
+					String countyCode=countyList.get(index).getCountyCode();
+					Intent intent=new Intent(ChooseAreaActivity.this,WeatherActivity.class);
+					intent.putExtra("county_code", countyCode);
+					startActivity(intent);
+					finish();
 				}
 			}
 		});
-		queryProvince();
+		queryProvinces();
 	}
-	private void queryProvince() {
+	private void queryProvinces() {
 		// TODO 自动生成的方法存根
 		provinceList=coolweatherDB.loadProvinces();
 		if(provinceList.size()>0){
@@ -157,7 +175,7 @@ public class ChooseAreaActivity extends Activity{
 							// TODO 自动生成的方法存根
 							closeProgressDialog();
 							if("province".equals(type)){
-								queryProvince();
+								queryProvinces();
 							}else if("city".equals(type)){
 								queryCities();
 							}else if("county".equals(type)){
@@ -203,7 +221,7 @@ public class ChooseAreaActivity extends Activity{
 		if(currentLevel==LEVEL_COUNTY){
 			queryCities();
 		}else if(currentLevel==LEVEL_CITY){
-			queryProvince();
+			queryProvinces();
 		}else{
 			finish();
 		}
